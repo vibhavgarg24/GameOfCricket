@@ -1,6 +1,7 @@
 public class Inning {
 
-    private Team battingTeam, ballingTeam;
+    private Team battingTeam;
+    private Team ballingTeam;
     private int totalRuns;
     private int totalWickets;
 

@@ -4,13 +4,11 @@ public class Player {
     private int runs;
     private int wickets;
 
-    public static Player getDefaultPlayer(String name) {
-        Player player = new Player();
-        player.setName(name);
-        return player;
+    public Player() {
     }
 
-    public Player() {
+    public Player(String name) {
+        this.name = name;
     }
 
     public String getName() {

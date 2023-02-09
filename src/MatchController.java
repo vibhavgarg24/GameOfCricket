@@ -1,36 +1,37 @@
 public class MatchController {
-
-    private Team t1, t2;
     private int overs;
+    private Inning firstInning;
+    private Inning secondInning;
 
-    public MatchController(Team t1, Team t2, int overs) {
-        this.t1 = t1;
-        this.t2 = t2;
+    public MatchController() {
+    }
+
+    public void config(String t1Name, String t2Name, int overs) {
         this.overs = overs;
-    }
-
-    public void start() {
-
-//        t1.displayTeam();
-//        t2.displayTeam();
-
-        System.out.println(overs + "-over Match starts...\n");
+        // create teams
+        Team t1 = Team.getDefaultTeam(t1Name);
+        Team t2 = Team.getDefaultTeam(t2Name);
         // toss
-        // firstInnings
-        Inning firstInning = innings(t1, t2);
-        // secondInnings
-        Inning secondInning = innings(t2, t1);
+        // create Innings
+        firstInning = new Inning(t1, t2);
+        secondInning = new Inning(t2, t1);
+        // start the match
+        this.start();
+    }
+    public void start() {
+        System.out.println(overs + "-over Match starts...\n");
+        // simulateInnings
+        simulateInning(firstInning);
+        simulateInning(secondInning);
         // Result
-        result(firstInning, secondInning);
+        result();
     }
 
-    public Inning innings(Team t1, Team t2) {
-
-        System.out.println(t1.getName() + " batting, " + t2.getName() + " bowling...");
-        Inning inning = new Inning(t1, t2);
+    public void simulateInning(Inning inning) {
+        System.out.println(inning.getBattingteam().getName() + " batting, " +
+                            inning.getBallingTeam().getName()+ " bowling...");
         simulateOvers(inning, overs);
         displayTotal(inning);
-        return inning;
     }
 
     public void simulateOvers(Inning inning, int overs) {
@@ -41,12 +42,11 @@ public class MatchController {
         l1:for (int i=0; i<overs; i++) {
             for (int j=0; j<6; j++) {
                 int ballResult = getBallResult();
-
-                // check if wicket
+                // check if wicket fallen
                 if (ballResult == 7) {
                     wickets++;
                     System.out.print('W');
-
+                    // check if team is all out
                     if (wickets == 10) {
                         break l1;
                     }
@@ -70,17 +70,18 @@ public class MatchController {
         // 0-6 for runs and 7 fow Wicket
         return (int)(Math.random() * 8);
     }
+
     public void displayTotal(Inning inning) {
-        System.out.println("\nTotal: " + inning.getTotalRuns() + "/" + inning.getTotalWickets() + "\n");
+        System.out.println("\nTotal: " + inning.getTotalRuns() + "/" +
+                            inning.getTotalWickets() + "\n");
     }
 
-    public void result(Inning firstInning, Inning secondInning) {
-
+    public void result() {
         Team winner = null;
         if (firstInning.getTotalRuns() > secondInning.getTotalRuns()) {
-            winner = t1;
+            winner = firstInning.getBattingteam();
         } else if (firstInning.getTotalRuns() < secondInning.getTotalRuns()) {
-            winner = t2;
+            winner = secondInning.getBattingteam();
         }
 
         if (winner != null) {

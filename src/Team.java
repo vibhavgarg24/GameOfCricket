@@ -1,18 +1,23 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class Team {
 
     private String name;
-    private ArrayList<Player> players;
+    private List<Player> players;
 
     public Team() {
     }
 
-    public ArrayList<Player> getPlayers() {
+    public Team(String name) {
+        this.name = name;
+    }
+
+    public List<Player> getPlayers() {
         return players;
     }
 
-    public void setPlayers(ArrayList<Player> players) {
+    public void setPlayers(List<Player> players) {
         this.players = players;
     }
 
@@ -25,23 +30,18 @@ public class Team {
     }
 
     public static Team getDefaultTeam(String name) {
-        Team team = new Team();
-        team.setName(name);
-
+        Team team = new Team(name);
         // add 11 default players to the default team
-        ArrayList<Player> players = new ArrayList<>(11);
+        List<Player> players = new ArrayList<>(11);
         for (int i=0; i<11; i++) {
-            players.add(Player.getDefaultPlayer("player" + (i+1)));
+            players.add(new Player("player" + (i+1)));
         }
         team.setPlayers(players);
-
         return team;
     }
 
     public void displayTeam() {
-
         System.out.println("Team Name: " + this.name);
-
         // display players in the team
         for (int i=0; i<11; i++) {
             System.out.println("\tPlayer: " + this.players.get(i).getName());
