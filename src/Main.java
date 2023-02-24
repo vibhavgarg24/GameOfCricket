@@ -1,6 +1,6 @@
 public class Main {
     public static void main(String[] args) {
-        MatchController matchController = new MatchController();
-        matchController.config("IND", "PAK", 3);
+        MatchController matchController = new MatchController("IND", "PAK", 20);
+        matchController.start();
     }
 }
