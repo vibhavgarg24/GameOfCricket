@@ -1,7 +1,13 @@
 package model;
 
 import enums.PlayerType;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@NoArgsConstructor
+@Getter
+@Setter
 public class Player {
 
     private String name;
@@ -11,9 +17,6 @@ public class Player {
     private int ballsBowled;
     private PlayerType playerType;
 
-    public Player() {
-    }
-
     public Player(String name, int runs, int wickets, PlayerType playerType) {
         this.name = name;
         this.runs = runs;
@@ -21,51 +24,12 @@ public class Player {
         this.playerType = playerType;
     }
 
-    public String getName() {
-        return name;
+    public static int getRunsAtBowl(Player player) {
+        // 0-6 for runs and 7 fow Wicket
+        if (player.getPlayerType() == PlayerType.BATTER) {
+            return (int) (Math.random() * 7) + (int) (Math.random() * 2);
+        }
+        return (int) (Math.random() * 8);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getRuns() {
-        return runs;
-    }
-
-    public void setRuns(int runs) {
-        this.runs = runs;
-    }
-
-    public int getWickets() {
-        return wickets;
-    }
-
-    public void setWickets(int wickets) {
-        this.wickets = wickets;
-    }
-
-    public int getBallsPlayed() {
-        return ballsPlayed;
-    }
-
-    public void setBallsPlayed(int ballsPlayed) {
-        this.ballsPlayed = ballsPlayed;
-    }
-
-    public int getBallsBowled() {
-        return ballsBowled;
-    }
-
-    public void setBallsBowled(int ballsBowled) {
-        this.ballsBowled = ballsBowled;
-    }
-
-    public PlayerType getPlayerType() {
-        return playerType;
-    }
-
-    public void setPlayerType(PlayerType playerType) {
-        this.playerType = playerType;
-    }
 }

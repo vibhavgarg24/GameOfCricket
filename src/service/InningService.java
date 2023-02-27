@@ -2,6 +2,7 @@ package service;
 
 import model.Inning;
 import model.Player;
+import utils.ScoreBoard;
 
 public class InningService {
 
@@ -13,12 +14,11 @@ public class InningService {
     private int currentBowlerIndex;
     private int targetRuns;
 
-    private PlayerService playerService;
-    private ScoreBoardService scoreBoardService;
-
-    public InningService() {
-        this.playerService = new PlayerService();
-        this.scoreBoardService = new ScoreBoardService();
+    public Inning simulateInning(Inning inning, int targetRuns, int overs) {
+        config(inning, targetRuns);
+        simulateOvers(overs);
+        ScoreBoard.displayScoreBoard(inning);
+        return inning;
     }
 
     private void config(Inning inning, int targetRuns) {
@@ -30,31 +30,20 @@ public class InningService {
         currentBowlerIndex = 6;
     }
 
-    public Inning simulateInning(Inning inning, int targetRuns, int overs) {
-        config(inning, targetRuns);
-        simulateOvers(overs);
-        scoreBoardService.displayScoreBoard(inning);
-        return inning;
-    }
-
     private void simulateOvers(int overs) {
-        l1:
         for (int i = 0; i < overs; i++) {
             for (int j = 0; j < 6; j++) {
                 Player strikePlayer = inning.getBattingTeam().getPlayers().get(strikePlayerIndex);
-                int runsAtBowl = playerService.getRunsAtBowl(strikePlayer);
+                int runsAtBowl = Player.getRunsAtBowl(strikePlayer);
                 strikePlayer.setBallsPlayed(strikePlayer.getBallsPlayed() + 1);
                 // add bowlsBowled to bowler
                 if (runsAtBowl == 7) {
                     wicketFallen();
-                    if (teamAllOut()) {
-                        break l1;
-                    }
                 } else {
                     runsScored(runsAtBowl, strikePlayer);
-                    if (targetRuns != -1 && inning.getTotalRuns() > targetRuns) {
-                        break l1;
-                    }
+                }
+                if (teamAllOut() || targetAchieved()) {
+                    return;
                 }
             }
             swapPlayers();
@@ -99,5 +88,9 @@ public class InningService {
 
     private boolean teamAllOut() {
         return (inning.getTotalWickets() == 10);
+    }
+
+    private boolean targetAchieved() {
+        return (targetRuns != -1 && inning.getTotalRuns() > targetRuns);
     }
 }

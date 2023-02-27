@@ -1,7 +1,8 @@
+package controller;
+
 import model.Inning;
 import model.Team;
 import service.InningService;
-import service.TeamService;
 
 public class MatchController {
     private int overs;
@@ -9,18 +10,16 @@ public class MatchController {
     private Inning secondInning;
 
     private InningService inningService;
-    private TeamService teamService;
 
     public MatchController(String t1Name, String t2Name, int overs) {
         this.inningService = new InningService();
-        this.teamService = new TeamService();
         this.overs = overs;
         config(t1Name, t2Name);
     }
 
     private void config(String t1Name, String t2Name) {
-        Team t1 = teamService.getDefaultTeam(t1Name);
-        Team t2 = teamService.getDefaultTeam(t2Name);
+        Team t1 = Team.getDefaultTeam(t1Name);
+        Team t2 = Team.getDefaultTeam(t2Name);
         // toss
         firstInning = new Inning(t1, t2);
         secondInning = new Inning(t2, t1);

@@ -1,13 +1,13 @@
-package service;
+package utils;
 
 import model.Inning;
 import model.Player;
 
 import java.util.List;
 
-public class ScoreBoardService {
+public class ScoreBoard {
 
-    public void displayScoreBoard(Inning inning) {
+    public static void displayScoreBoard(Inning inning) {
         System.out.println("\n" + inning.getBattingTeam().getName() + " batting, " +
                 inning.getBowlingTeam().getName() + " bowling...");
         displayScoreLine(inning.getScoreLine());
@@ -15,7 +15,7 @@ public class ScoreBoardService {
         displayInningTotals(inning);
     }
 
-    private void displayScoreLine(List<Character> scoreLine) {
+    private static void displayScoreLine(List<Character> scoreLine) {
         StringBuilder sb = new StringBuilder("ScoreLine: ");
         for (char bowlScore : scoreLine) {
             sb.append(bowlScore).append(',');
@@ -24,7 +24,7 @@ public class ScoreBoardService {
         System.out.println(sb);
     }
 
-    private void displayRunsByEachBatter(List<Player> players) {
+    private static void displayRunsByEachBatter(List<Player> players) {
         StringBuilder sb = new StringBuilder("Runs Scored: ");
         for (Player player : players) {
             if (player.getBallsPlayed() != 0) {
@@ -36,7 +36,7 @@ public class ScoreBoardService {
         System.out.println(sb);
     }
 
-    private void displayInningTotals(Inning inning) {
+    private static void displayInningTotals(Inning inning) {
         int oversBowled = inning.getScoreLine().size() / 6;
         int bowlsBowled = inning.getScoreLine().size() % 6;
         StringBuilder sb = new StringBuilder("Total: ");
