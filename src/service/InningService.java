@@ -1,46 +1,82 @@
 package service;
 
+import dao.InningDao;
+import dao.PlayerDao;
+import dao.TeamDao;
 import model.Inning;
 import model.Player;
+import model.Team;
 import utils.ScoreBoard;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class InningService {
 
+    private InningDao inningDao;
+    private TeamDao teamDao;
+    private PlayerDao playerDao;
     private Inning inning;
+    private int targetRuns;
+    private List<Player> battingTeamPlayers;
+    private List<Player> bowlingTeamPlayers;
 
     private int strikePlayerIndex;
     private int nonStrikePlayerIndex;
     private int nextBatterIndex;
     private int currentBowlerIndex;
-    private int targetRuns;
 
-    public Inning simulateInning(Inning inning, int targetRuns, int overs) {
-        config(inning, targetRuns);
+    public InningService() {
+        this.inningDao = new InningDao();
+        this.teamDao = new TeamDao();
+        this.playerDao = new PlayerDao();
+    }
+
+    public Inning simulateInning(String inningId, int targetRuns, int overs) {
+        inning = inningDao.findById(inningId);
+        this.targetRuns = targetRuns;
+        config();
         simulateOvers(overs);
-        ScoreBoard.displayScoreBoard(inning);
+        saveData();
+        ScoreBoard.displayScoreBoard(inningId, battingTeamPlayers, bowlingTeamPlayers);
         return inning;
     }
 
-    private void config(Inning inning, int targetRuns) {
-        this.inning = inning;
-        this.targetRuns = targetRuns;
+    private void config() {
+        initPlayers();
         strikePlayerIndex = 0;
         nonStrikePlayerIndex = 1;
         nextBatterIndex = 2;
         currentBowlerIndex = 6;
     }
 
+    private void initPlayers() {
+        Team battingTeam = teamDao.findById(inning.getBattingTeamId());
+        List<String> battingTeamPlayerIds = battingTeam.getPlayerIds();
+        battingTeamPlayers = new ArrayList<>(11);
+        for (String playerId : battingTeamPlayerIds) {
+            battingTeamPlayers.add(playerDao.getDefaultPlayer(playerId));
+        }
+        Team bowlingTeam = teamDao.findById(inning.getBowlingTeamId());
+        List<String> bowlingTeamPlayerIds = bowlingTeam.getPlayerIds();
+        bowlingTeamPlayers = new ArrayList<>(11);
+        for (String playerId : bowlingTeamPlayerIds) {
+            bowlingTeamPlayers.add(playerDao.getDefaultPlayer(playerId));
+        }
+    }
+
     private void simulateOvers(int overs) {
         for (int i = 0; i < overs; i++) {
             for (int j = 0; j < 6; j++) {
-                Player strikePlayer = inning.getBattingTeam().getPlayers().get(strikePlayerIndex);
-                int runsAtBowl = Player.getRunsAtBowl(strikePlayer);
+                Player strikePlayer = battingTeamPlayers.get(strikePlayerIndex);
+                int runsAtBall = Player.getRunsAtBall(strikePlayer);
                 strikePlayer.setBallsPlayed(strikePlayer.getBallsPlayed() + 1);
-                // add bowlsBowled to bowler
-                if (runsAtBowl == 7) {
-                    wicketFallen();
+                Player currentBowler = bowlingTeamPlayers.get(currentBowlerIndex);
+                currentBowler.setBallsBowled(currentBowler.getBallsBowled() + 1);
+                if (runsAtBall == 7) {
+                    wicketFallen(currentBowler);
                 } else {
-                    runsScored(runsAtBowl, strikePlayer);
+                    runsScored(runsAtBall, strikePlayer, currentBowler);
                 }
                 if (teamAllOut() || targetAchieved()) {
                     return;
@@ -51,23 +87,23 @@ public class InningService {
         }
     }
 
-    private void wicketFallen() {
+    private void wicketFallen(Player currentBowler) {
         inning.getScoreLine().add('W');
         inning.setTotalWickets(inning.getTotalWickets() + 1);
-        // add wicket to bowler
+        currentBowler.setWickets(currentBowler.getWickets() + 1);
         if (!teamAllOut()) {
             strikePlayerIndex = nextBatterIndex;
             nextBatterIndex++;
         }
     }
 
-    private void runsScored(int runsAtBowl, Player strikePlayer) {
-        char runsAtBowlChar = (char) ('0' + runsAtBowl);
-        inning.getScoreLine().add(runsAtBowlChar);
-        inning.setTotalRuns(inning.getTotalRuns() + runsAtBowl);
-        strikePlayer.setRuns(strikePlayer.getRuns() + runsAtBowl);
-        // add runsGiven to bowler
-        if (runsAtBowl % 2 == 1) {
+    private void runsScored(int runsAtBall, Player strikePlayer, Player currentBowler) {
+        char runsAtBallChar = (char) ('0' + runsAtBall);
+        inning.getScoreLine().add(runsAtBallChar);
+        inning.setTotalRuns(inning.getTotalRuns() + runsAtBall);
+        strikePlayer.setRunsScored(strikePlayer.getRunsScored() + runsAtBall);
+        currentBowler.setRunsGiven(currentBowler.getRunsGiven() + runsAtBall);
+        if (runsAtBall % 2 == 1) {
             swapPlayers();
         }
     }
@@ -92,5 +128,23 @@ public class InningService {
 
     private boolean targetAchieved() {
         return (targetRuns != -1 && inning.getTotalRuns() > targetRuns);
+    }
+
+    private void saveData() {
+        updatePlayers(battingTeamPlayers);
+        updatePlayers(bowlingTeamPlayers);
+        inningDao.updateInning(inning.get_id(), inning);
+    }
+
+    private void updatePlayers(List<Player> players) {
+        for (Player playerInMatch : players) {
+            Player playerOverall = playerDao.findById(playerInMatch.get_id());
+            playerOverall.setRunsScored(playerOverall.getRunsScored() + playerInMatch.getRunsScored());
+            playerOverall.setRunsGiven(playerOverall.getRunsGiven() + playerInMatch.getRunsGiven());
+            playerOverall.setWickets(playerOverall.getWickets() + playerInMatch.getWickets());
+            playerOverall.setBallsPlayed(playerOverall.getBallsPlayed() + playerInMatch.getBallsPlayed());
+            playerOverall.setBallsBowled(playerOverall.getBallsBowled() + playerInMatch.getBallsBowled());
+            playerDao.updatePlayer(playerInMatch.get_id(), playerOverall);
+        }
     }
 }
